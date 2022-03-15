@@ -9,7 +9,8 @@
 --%>
 
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" 
+	import="edu.nbcc.model.*"%>
 
 <!DOCTYPE html>
 <html>
@@ -21,42 +22,54 @@
 	<%@include file="WEB-INF/jspf/navigation.jspf"%>
 	<h2>Book</h2>
 	
-
+	<%
+		if (request.getAttribute("vm") != null) {
+			BookModel vm = (BookModel)request.getAttribute("vm");
+		
+	%>
 
 
 	<form method="POST" action="save">
 		<table class="table">
 			<!-- Display details in view mode -->
 			
+			<% if (vm.getBook() != null && vm.getBook().getId() != 0) { %>
 			<tr>
 				<td><label>Book Id:</label></td>
 				<td><input type="hidden"
-					value='' name="hdnBookId" /></td>
+					value='${vm.book.id}' name="hdnBookId" /></td>
 			</tr>
-			
+			<% } %>
 
 			<tr>
 				<td>Book Name:</td>
 				<td><input type="text" name="bookName"
-					value='' /></td>
+					value='${vm.book.name}' /></td>
 			</tr>
 			<tr>
 				<td>Book Price:</td>
 				<td><input type="text" name="bookPrice"
-					value='' /></td>
+					value='${vm.book.price > 0 ? vm.book.price : ""}' /></td>
 			</tr>
 			<tr>
 				<td>Term</td>
 				<td>
+					<% for (int i:vm.getTerms()) { 
+						if (vm.getBook() != null && vm.getBook().getTerm() == i) { %>
+							<input type="radio" name="bookTerm" value="<%= i %>" checked /> Term <%=i %>
+						<% } else { %>
 					<!-- Updating a book or creating a book must have the supported list of terms -->
-					 <input type="radio" name="bookTerm" value="" checked />
-					Term
+					 <input type="radio" name="bookTerm" value="<%=i %>" /> Term <%=i %>
 
-
+					<% 
+						}
+					} %>
+			
 				</td>
 			</tr>
 		</table>
 
+		<% if (vm.getBook() != null && vm.getBook().getId() > 0) { %>
 		<!-- Decide on what buttons to render. When updating, show Save and Delete, create show Create -->
 
 		<input class="btn btn-primary" type="submit" value="Delete"
@@ -64,22 +77,28 @@
 		 <input class="btn btn-primary" type="submit"
 			value="Save" name="action" />
 		
-
+		<% } else { %>
 		<input class="btn btn-primary" type="submit" value="Create"
 			name="action" />
+		<% } %>
 		
 	</form>
 	
+	<% } %>
+	
+	<% if (request.getAttribute("error") != null) {
+		ErrorModel em = (ErrorModel)request.getAttribute("error");
+		if (em.getErrors() != null && em.getErrors().size() > 0) {
+		%>
 	<!--Set up errors here -->
 	
 	<ul class="alert alert-danger">
-		
-
-
-		<li></li>
-		
+	<% for (String err : em.getErrors()) { %>
+		<li><%=err %></li>
+	<% } %>
 
 	</ul>
+	<% } } %>
 	
 
 </body>
