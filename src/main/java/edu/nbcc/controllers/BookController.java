@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.nbcc.dao.BookDAO;
+import edu.nbcc.dao.BookDAOImpl;
 import edu.nbcc.model.Book;
 import edu.nbcc.model.BookModel;
 import edu.nbcc.model.ErrorModel;
@@ -51,15 +53,19 @@ public class BookController extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Book book = new Book();
 		String path = request.getPathInfo();
+		BookDAO dao = new BookDAOImpl();
 		if (path == null) {
-			request.setAttribute("vm", book.getBooks());
+			//request.setAttribute("vm", book.getBooks());
+			List<Book> books = dao.findAll();
+			request.setAttribute("vm", books);
 			setView(request, BOOK_VIEW);
 		} else {
 			String[] parts = path.split("/");
 			if (parts[1].equalsIgnoreCase("create") || ValidationUtil.isNumeric(parts[1])) {
 				int id = ValidationUtil.getInteger(parts[1]);
 				if (id != 0) {
-					Book bk = book.getBook(id);
+					//Book bk = book.getBook(id);
+					Book bk = dao.findById(id);
 					if (bk != null) {
 						BookModel vm = new BookModel();
 						vm.setBook(bk);
@@ -86,6 +92,7 @@ public class BookController extends HttpServlet {
 		try {
 			List<String> errors = new ArrayList<String>();
 			setView(request, BOOK_SUMMARY);
+			BookDAO dao = new BookDAOImpl();
 			Book book = new Book();
 			if (request.getParameter("bookPrice") == null || request.getParameter("bookPrice").trim().length() == 0) {
 				errors.add("Book Price is null");
@@ -117,11 +124,13 @@ public class BookController extends HttpServlet {
 				
 				switch (action) {
 					case "create":
-						book = book.create();
+						//book = book.create();
+						book.setId(dao.insert(book));
 						request.setAttribute("createdBook", book);
 						break;
 					case "save":
-						if (book.saveBook() > 0) {
+						int saveId = dao.update(book);
+						if (saveId > 0) {
 							request.setAttribute("savedBook", book);
 						} else {
 							BookModel vm = new BookModel();
@@ -132,7 +141,8 @@ public class BookController extends HttpServlet {
 						}
 						break;
 					case "delete":
-						if (book.deleteBook() > 0) {
+						int deleteId = dao.delete(id);
+						if (deleteId > 0) {
 							request.setAttribute("deletedBook", book);
 						} else {
 							BookModel vm = new BookModel();
